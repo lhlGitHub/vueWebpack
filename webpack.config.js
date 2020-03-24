@@ -5,9 +5,12 @@ const HtmlWebapckPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const isDebug = process.env.NODE_ENV === "development";
+const  isDebug= process.env.NODE_ENV === "development";
 const HMR = new webpack.HotModuleReplacementPlugin();
 const cleanDist=  new CleanWebpackPlugin("dist")
+const HappyPack = require('happypack')
+const os = require('os')
+const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length }); //线程城池
 
 const config = {
   //设置了 mode 之后会把 process.env.NODE\_ENV 也设置为 development 或者 production。然后在 production 模式下，会默认开启 UglifyJsPlugin 等等一堆插件。
@@ -35,6 +38,7 @@ const config = {
     contentBase: path.resolve(__dirname, "dist"),
     port: 3000,
     host: "0.0.0.0",
+    open:true,
     historyApiFallback: true,
     disableHostCheck: true
   },
@@ -59,8 +63,7 @@ const config = {
       {
         test: /\.js$/,
         use: {
-          loader: "babel-loader"
-         
+          loader: 'happypack/loader?id=babel'       
         },
         exclude: ["/node_modules/"],
         include: path.resolve(__dirname, "src")
@@ -111,6 +114,19 @@ const config = {
       filename: "css/[name].css",
       // chunkFilename: "[name].css",
       disable: isDebug
+    }),
+    //把第三方组件分开打包，只需执行npm run dll打包一次
+    new webpack.DllReferencePlugin({
+      context: __dirname,//与DllPlugin中的context保持一致
+      /*这个地址对应webpack.dll.conf.js中生成的那个json文件的路径，这样webpack打包的时候
+      会检测当前文件中的映射，不会把已经存在映射的包再次打包进bundle.js */
+      manifest: require('./vendor-manifest.json')
+    }),
+    // HappyPack开启多个线程打包资源文件
+    new HappyPack({
+      id: 'babel',
+      loaders: ['babel-loader?cacheDirectory=true'],
+      threadPool: happyThreadPool
     })
   ]
 };
