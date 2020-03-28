@@ -1,4 +1,6 @@
 import Vue from 'vue'
+import vuex from 'vuex'
+
 import App from '@/page/index.vue'
 import  '@/css/rest.css'
 import  '@/css/index.less'

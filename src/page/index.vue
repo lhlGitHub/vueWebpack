@@ -25,8 +25,8 @@ export default {
   },
   components:{child},
   created() {
-    this.name = "大家好，我是3k猫 "
-    this.getData();
+    this.name = "大家好，我是3k猫 !!!!!"
+    // this.getData();
   },
   async mounted() {
    let res=await this.pro();
